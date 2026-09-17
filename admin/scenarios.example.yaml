@@ -1,0 +1,27 @@
+# Example scenario definitions loaded at startup via MOCK_SCENARIO_FILE.
+# Each entry is keyed by (model, operation) and configures how the mock behaves.
+scenarios:
+  # A plain default canned reply for a common OpenAI chat model.
+  - model: gpt-4o-mini
+    operation: chat
+    response_text: "This is a canned mock response for gpt-4o-mini."
+
+  # A Bedrock Claude model with simulated streaming speed (10 tokens/sec).
+  - model: "anthropic.claude-3-5-sonnet-20240620-v1:0"
+    operation: chat
+    response_text: "Hello from the Bedrock Claude mock, streamed slowly."
+    tokens_per_second: 10
+
+  # A high-latency scenario, useful for load/timeout testing.
+  - model: gemini-1.5-pro
+    operation: chat
+    response_text: "Hello from Vertex, after a delay."
+    latency_ms: 3000
+
+  # An error-injection scenario: any request to this model gets a 429 rate limit error.
+  - model: rate-limited-model
+    operation: chat
+    error:
+      status_code: 429
+      type: rate_limit
+      message: "Rate limit exceeded (mock error injection)."
