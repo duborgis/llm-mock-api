@@ -1,0 +1,15 @@
+{
+  "request": {
+    "method": "POST",
+    "urlPath": "/token"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "jsonBody": {
+      "access_token": "mock-access-token-not-a-real-google-token",
+      "expires_in": 3599,
+      "token_type": "Bearer"
+    }
+  }
+}
