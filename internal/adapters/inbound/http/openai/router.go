@@ -12,11 +12,13 @@ import (
 
 // Handler wires the OpenAI-shaped routes to the generic use cases.
 type Handler struct {
-	Chat   ports.ChatCompletionUseCase
-	Embed  ports.EmbeddingUseCase
-	Images ports.ImageGenerationUseCase
-	Models ports.ModelCatalogUseCase
-	Logger *slog.Logger
+	Chat           ports.ChatCompletionUseCase
+	Embed          ports.EmbeddingUseCase
+	Images         ports.ImageGenerationUseCase
+	Transcriptions ports.AudioTranscriptionUseCase
+	Speech         ports.AudioSpeechUseCase
+	Models         ports.ModelCatalogUseCase
+	Logger         *slog.Logger
 }
 
 // NewRouter registers OpenAI-compatible routes onto mux.
@@ -27,5 +29,7 @@ func NewRouter(mux *http.ServeMux, h *Handler) {
 	mux.HandleFunc("GET /v1/models/{id}", h.getModel)
 	mux.HandleFunc("POST /v1/embeddings", h.createEmbeddings)
 	mux.HandleFunc("POST /v1/images/generations", h.createImage)
+	mux.HandleFunc("POST /v1/audio/transcriptions", h.createTranscription)
+	mux.HandleFunc("POST /v1/audio/speech", h.createSpeech)
 	mux.HandleFunc("POST /v1/moderations", h.moderations)
 }

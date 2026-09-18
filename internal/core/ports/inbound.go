@@ -23,6 +23,16 @@ type ImageGenerationUseCase interface {
 	Generate(ctx context.Context, req domain.ImageRequest) (domain.ImageResponse, error)
 }
 
+// AudioTranscriptionUseCase is the driving port for speech-to-text.
+type AudioTranscriptionUseCase interface {
+	Transcribe(ctx context.Context, req domain.TranscriptionRequest) (domain.TranscriptionResponse, error)
+}
+
+// AudioSpeechUseCase is the driving port for text-to-speech.
+type AudioSpeechUseCase interface {
+	Synthesize(ctx context.Context, req domain.SpeechRequest) (domain.SpeechResponse, error)
+}
+
 // ModelCatalogUseCase is the driving port for model listing/lookup.
 type ModelCatalogUseCase interface {
 	List(ctx context.Context) ([]domain.ModelInfo, error)
