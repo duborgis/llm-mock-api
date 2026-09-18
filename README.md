@@ -342,3 +342,8 @@ open http://localhost:9018   # or curl http://localhost:9018/api/traces?service=
   beyond `foundation-models` listing — out of scope.
 - **Admin API** has no authentication — it's a test-control surface, not meant to be exposed
   publicly.
+
+## License
+
+Proprietary — see [LICENSE](LICENSE). Free to view, run, and modify for personal/educational
+use; commercial use requires prior written permission from the author.
