@@ -55,3 +55,51 @@ func (h *Handler) listEvents(w http.ResponseWriter, r *http.Request) {
 		Events []domain.Event `json:"events"`
 	}{Events: events})
 }
+
+func (h *Handler) ingestRawResponse(w http.ResponseWriter, r *http.Request) {
+	var resp domain.RawResponse
+	if err := json.NewDecoder(r.Body).Decode(&resp); err != nil {
+		if h.Logger != nil {
+			h.Logger.Error("openmeter: failed to decode raw response", "err", err)
+		}
+		http.Error(w, `{"error":"invalid raw response body"}`, http.StatusBadRequest)
+		return
+	}
+
+	if err := h.Responses.Ingest(r.Context(), resp); err != nil {
+		if h.Logger != nil {
+			h.Logger.Error("openmeter: failed to store raw response", "err", err)
+		}
+		http.Error(w, `{"error":"failed to store raw response"}`, http.StatusInternalServerError)
+		return
+	}
+
+	if h.Logger != nil {
+		h.Logger.Info("openmeter: raw response ingested", "call_id", resp.CallID, "model", resp.Model, "route", resp.Route)
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *Handler) listRawResponses(w http.ResponseWriter, r *http.Request) {
+	limit := 100
+	if v := r.URL.Query().Get("limit"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			limit = n
+		}
+	}
+
+	responses, err := h.Responses.List(r.Context(), limit)
+	if err != nil {
+		if h.Logger != nil {
+			h.Logger.Error("openmeter: failed to list raw responses", "err", err)
+		}
+		http.Error(w, `{"error":"failed to list raw responses"}`, http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(struct {
+		Responses []domain.RawResponse `json:"raw_responses"`
+	}{Responses: responses})
+}

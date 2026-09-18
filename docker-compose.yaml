@@ -39,6 +39,7 @@ services:
       - "4000:4000"
     volumes:
       - ./litellm/config.yaml:/app/config.yaml
+      - ./litellm/custom_callback.py:/app/custom_callback.py
       - ./litellm/secrets:/run/secrets:ro
     environment:
       OPENMETER_API_ENDPOINT: http://openmeter-mock:9010

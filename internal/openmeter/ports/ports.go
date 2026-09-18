@@ -17,3 +17,15 @@ type EventRepository interface {
 	Save(ctx context.Context, e domain.Event) error
 	List(ctx context.Context, limit int) ([]domain.Event, error)
 }
+
+// RawResponseIngestUseCase is the driving port for LiteLLM's custom raw-response callback.
+type RawResponseIngestUseCase interface {
+	Ingest(ctx context.Context, r domain.RawResponse) error
+	List(ctx context.Context, limit int) ([]domain.RawResponse, error)
+}
+
+// RawResponseRepository is the driven port: what the usecase needs from storage.
+type RawResponseRepository interface {
+	Save(ctx context.Context, r domain.RawResponse) error
+	List(ctx context.Context, limit int) ([]domain.RawResponse, error)
+}

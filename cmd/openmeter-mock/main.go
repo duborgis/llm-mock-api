@@ -39,11 +39,17 @@ func main() {
 		logger.Error("failed to connect to MongoDB", "uri", mongoURI, "err", err)
 		os.Exit(1)
 	}
+	rawResponses, err := mongo.NewRawResponseRepo(ctx, mongoURI, mongoDB, "raw_responses")
+	if err != nil {
+		logger.Error("failed to connect to MongoDB", "uri", mongoURI, "err", err)
+		os.Exit(1)
+	}
 
 	ingestUC := usecase.NewIngest(events)
+	rawResponseUC := usecase.NewRawResponseIngest(rawResponses)
 
 	mux := http.NewServeMux()
-	openmeteradapter.NewRouter(mux, &openmeteradapter.Handler{Events: ingestUC, Logger: logger})
+	openmeteradapter.NewRouter(mux, &openmeteradapter.Handler{Events: ingestUC, Responses: rawResponseUC, Logger: logger})
 	handler := httpserver.WithAccessLog(logger, "openmeter-mock", mux)
 
 	logger.Info("openmeter-mock started", "http_port", httpPort, "mongo_db", mongoDB)
