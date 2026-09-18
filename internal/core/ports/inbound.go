@@ -18,6 +18,11 @@ type EmbeddingUseCase interface {
 	Embed(ctx context.Context, req domain.EmbeddingRequest) (domain.EmbeddingResponse, error)
 }
 
+// ImageGenerationUseCase is the driving port for text-to-image generation.
+type ImageGenerationUseCase interface {
+	Generate(ctx context.Context, req domain.ImageRequest) (domain.ImageResponse, error)
+}
+
 // ModelCatalogUseCase is the driving port for model listing/lookup.
 type ModelCatalogUseCase interface {
 	List(ctx context.Context) ([]domain.ModelInfo, error)

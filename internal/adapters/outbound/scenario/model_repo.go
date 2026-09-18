@@ -28,6 +28,8 @@ func NewModelRepo() *ModelRepo {
 		{ID: "o4-mini", Owner: "openai", Created: 1744000000, Family: "gpt", Providers: []string{"openai"}},
 		{ID: "text-embedding-3-small", Owner: "openai", Created: 1705948997, Family: "embedding", Providers: []string{"openai"}},
 		{ID: "text-embedding-3-large", Owner: "openai", Created: 1705948997, Family: "embedding", Providers: []string{"openai"}},
+		{ID: "dall-e-3", Owner: "openai", Created: 1698785189, Family: "image", Providers: []string{"openai"}},
+		{ID: "gpt-image-1", Owner: "openai", Created: 1745000000, Family: "image", Providers: []string{"openai"}},
 
 		// --- OpenAI open-weight models, hosted on Bedrock (AWS-side, not the OpenAI API surface) ---
 		{ID: "openai.gpt-oss-120b-1:0", Owner: "openai", Created: 1754000000, Family: "gpt-oss", Providers: []string{"bedrock"}},

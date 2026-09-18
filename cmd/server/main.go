@@ -41,11 +41,12 @@ func main() {
 	// Usecases, wired only to ports
 	chatUC := usecase.NewChat(scenarioStore, sysClock)
 	embedUC := usecase.NewEmbedding(scenarioStore, sysClock)
+	imageUC := usecase.NewImage(scenarioStore, sysClock)
 	catalogUC := usecase.NewModelCatalog(modelRepo)
 
 	// Inbound HTTP adapters
 	mux := http.NewServeMux()
-	openaiadapter.NewRouter(mux, &openaiadapter.Handler{Chat: chatUC, Embed: embedUC, Models: catalogUC, Logger: logger})
+	openaiadapter.NewRouter(mux, &openaiadapter.Handler{Chat: chatUC, Embed: embedUC, Images: imageUC, Models: catalogUC, Logger: logger})
 	bedrockadapter.NewRouter(mux, &bedrockadapter.Handler{Chat: chatUC, Models: catalogUC, Logger: logger})
 	vertexadapter.NewRouter(mux, &vertexadapter.Handler{Chat: chatUC, Models: catalogUC, Logger: logger})
 

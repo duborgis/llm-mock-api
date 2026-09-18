@@ -14,6 +14,7 @@ import (
 type Handler struct {
 	Chat   ports.ChatCompletionUseCase
 	Embed  ports.EmbeddingUseCase
+	Images ports.ImageGenerationUseCase
 	Models ports.ModelCatalogUseCase
 	Logger *slog.Logger
 }
@@ -25,5 +26,6 @@ func NewRouter(mux *http.ServeMux, h *Handler) {
 	mux.HandleFunc("GET /v1/models", h.listModels)
 	mux.HandleFunc("GET /v1/models/{id}", h.getModel)
 	mux.HandleFunc("POST /v1/embeddings", h.createEmbeddings)
+	mux.HandleFunc("POST /v1/images/generations", h.createImage)
 	mux.HandleFunc("POST /v1/moderations", h.moderations)
 }
