@@ -1,4 +1,4 @@
-.PHONY: run build test test-contract vet fmt tidy litellm-up litellm-down litellm-logs
+.PHONY: run build test test-contract test-bdd vet fmt tidy litellm-up litellm-down litellm-logs
 
 run:
 	go run ./cmd/server
@@ -17,6 +17,13 @@ test:
 
 test-contract:
 	go test ./test/contract/... -v
+
+# BDD (godog/Gherkin) suite that drives real HTTP calls through the already-running
+# litellm-up stack and asserts OpenMeter events land for every mock route it covers.
+# -count=1 disables the test cache: every run has real side effects against the live stack
+# (POSTs through LiteLLM), so a "(cached)" result would silently skip them.
+test-bdd:
+	go test -tags bdd -count=1 ./test/bdd/... -v
 
 vet:
 	go vet ./...
