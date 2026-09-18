@@ -17,6 +17,7 @@ type Handler struct {
 	Images         ports.ImageGenerationUseCase
 	Transcriptions ports.AudioTranscriptionUseCase
 	Speech         ports.AudioSpeechUseCase
+	Videos         ports.VideoGenerationUseCase
 	Models         ports.ModelCatalogUseCase
 	Logger         *slog.Logger
 }
@@ -31,5 +32,8 @@ func NewRouter(mux *http.ServeMux, h *Handler) {
 	mux.HandleFunc("POST /v1/images/generations", h.createImage)
 	mux.HandleFunc("POST /v1/audio/transcriptions", h.createTranscription)
 	mux.HandleFunc("POST /v1/audio/speech", h.createSpeech)
+	mux.HandleFunc("POST /v1/videos", h.createVideo)
+	mux.HandleFunc("GET /v1/videos/{id}", h.getVideo)
+	mux.HandleFunc("GET /v1/videos/{id}/content", h.getVideoContent)
 	mux.HandleFunc("POST /v1/moderations", h.moderations)
 }

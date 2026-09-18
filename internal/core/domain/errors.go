@@ -4,6 +4,7 @@ import "errors"
 
 var (
 	ErrModelNotFound  = errors.New("model not found")
+	ErrNotFound       = errors.New("resource not found")
 	ErrInvalidRequest = errors.New("invalid request")
 	ErrScenarioFailed = errors.New("scenario error injection")
 )

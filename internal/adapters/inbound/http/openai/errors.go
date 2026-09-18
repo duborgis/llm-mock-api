@@ -37,7 +37,7 @@ func writeError(w http.ResponseWriter, logger *slog.Logger, err error) {
 	case errors.Is(err, domain.ErrInvalidRequest):
 		status = http.StatusBadRequest
 		body.Error.Type = "invalid_request_error"
-	case errors.Is(err, domain.ErrModelNotFound):
+	case errors.Is(err, domain.ErrModelNotFound), errors.Is(err, domain.ErrNotFound):
 		status = http.StatusNotFound
 		body.Error.Type = "invalid_request_error"
 	}
