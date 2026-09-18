@@ -12,6 +12,21 @@ Feature: OpenMeter usage events via LiteLLM
     Then an OpenMeter event for model "gpt-4o" should appear within 10 seconds
     And I print the OpenMeter events stored in MongoDB
 
+  Scenario: Bedrock chat completion emits an OpenMeter event
+    # Same /v1/chat/completions call as the OpenAI scenario above — LiteLLM routes it to the
+    # mock's Bedrock Converse implementation based on the "bedrock/" model prefix in
+    # litellm/config.yaml, not a different endpoint.
+    When I request a chat completion from LiteLLM for model "bedrock/claude-sonnet-4-5" with prompt "say hi"
+    Then an OpenMeter event for model "anthropic.claude-sonnet-4-5-20250929-v1:0" should appear within 10 seconds
+    And I print the OpenMeter events stored in MongoDB
+
+  Scenario: Vertex chat completion emits an OpenMeter event
+    # Same /v1/chat/completions call, routed to the mock's Vertex generateContent
+    # implementation based on the "vertex_ai/" model prefix.
+    When I request a chat completion from LiteLLM for model "vertex_ai/gemini-2.5-pro" with prompt "say hi"
+    Then an OpenMeter event for model "gemini-2.5-pro" should appear within 10 seconds
+    And I print the OpenMeter events stored in MongoDB
+
   Scenario: Responses API emits an OpenMeter event
     When I request a response from LiteLLM for model "openai/gpt-4o" with prompt "say hi"
     Then an OpenMeter event for model "gpt-4o" should appear within 10 seconds

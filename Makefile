@@ -1,4 +1,4 @@
-.PHONY: run build test test-contract test-bdd vet fmt tidy litellm-up litellm-down litellm-logs
+.PHONY: run build test test-contract test-bdd vet fmt tidy litellm-up litellm-down litellm-logs litellm-clean
 
 run:
 	go run ./cmd/server
@@ -45,3 +45,10 @@ litellm-down:
 
 litellm-logs:
 	docker compose logs -f
+
+# Clears accumulated state without tearing the stack down: drops the openmeter_mock Mongo
+# database (events + raw_responses collections) and restarts Jaeger, whose all-in-one image
+# only keeps traces in memory, so a restart is all "clearing" it means.
+litellm-clean:
+	docker compose exec -T mongo mongosh openmeter_mock --quiet --eval "db.dropDatabase()"
+	docker compose restart jaeger
