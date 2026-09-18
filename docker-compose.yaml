@@ -44,10 +44,30 @@ services:
     environment:
       OPENMETER_API_ENDPOINT: http://openmeter-mock:9010
       OPENMETER_API_KEY: mock-key
+      # Consumed by LiteLLM's built-in "otel" callback (litellm/integrations/opentelemetry.py)
+      # to export one span per proxied call straight to Jaeger's OTLP/gRPC receiver.
+      OTEL_EXPORTER: otlp_grpc
+      OTEL_ENDPOINT: jaeger:4317
+      OTEL_SERVICE_NAME: litellm-mock-proxy
+      # Jaeger's OTLP/gRPC receiver here is plaintext — without this the exporter's default
+      # TLS client hello just gets rejected by Jaeger as a "bogus greeting".
+      OTEL_EXPORTER_OTLP_TRACES_INSECURE: "true"
     command: ["--config", "/app/config.yaml", "--port", "4000"]
     depends_on:
       - mock-api
       - openmeter-mock
+      - jaeger
+
+  # All-in-one OTel backend: receives the spans LiteLLM's "otel" callback exports (OTLP/gRPC
+  # on 4317) and serves the Jaeger UI to browse them.
+  jaeger:
+    image: jaegertracing/all-in-one:1.60
+    container_name: llm-mock-jaeger
+    ports:
+      - "9018:16686" # UI — within the 9000-9099 block the Windows-side nginx proxies into WSL
+      - "4317:4317" # OTLP/gRPC receiver
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
 
   # Real MongoDB, storing every event the openmeter-mock ingests. Exposed on 9017 (within the
   # 9000-9099 block this machine's Windows-side nginx already TCP-proxies into WSL — see

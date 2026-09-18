@@ -77,9 +77,11 @@ litellm_settings:
   drop_params: true
   # Requires a `user` in the request body (or from the calling key's metadata) — LiteLLM's
   # OpenMeterLogger raises otherwise, since the event needs a subject.
+  # "otel" exports one span per call via OTLP/gRPC to Jaeger (endpoint/exporter configured
+  # through OTEL_EXPORTER/OTEL_ENDPOINT env vars on the litellm service).
   # "custom_callback.raw_response_logger" is our own callback (mounted alongside this file)
   # that forwards the full original_response to openmeter-mock -> MongoDB.
-  callbacks: ["openmeter", "custom_callback.raw_response_logger"]
+  callbacks: ["openmeter", "otel", "custom_callback.raw_response_logger"]
 
 general_settings:
   master_key: sk-litellm-local-test
