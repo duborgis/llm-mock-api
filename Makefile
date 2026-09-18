@@ -1,4 +1,4 @@
-.PHONY: run build test test-contract test-bdd vet fmt tidy litellm-up litellm-down litellm-logs litellm-clean
+.PHONY: run build test test-contract test-bdd vet fmt tidy litellm-up litellm-down litellm-logs litellm-clean mongo-view
 
 run:
 	go run ./cmd/server
@@ -36,19 +36,26 @@ tidy:
 
 # Full local stack: mock-api + wiremock (fakes Google oauth2) + nginx (front door) + litellm.
 # See README "Testing against LiteLLM" for what each service does and how to call it.
-litellm-up: build-linux
+up: build-linux
 	python3 scripts/gen-fake-vertex-credentials.py
 	docker compose up -d --build
 
-litellm-down:
+down:
 	docker compose down
 
-litellm-logs:
+logs:
 	docker compose logs -f
 
 # Clears accumulated state without tearing the stack down: drops the openmeter_mock Mongo
 # database (events + raw_responses collections) and restarts Jaeger, whose all-in-one image
 # only keeps traces in memory, so a restart is all "clearing" it means.
-litellm-clean:
+clean:
 	docker compose exec -T mongo mongosh openmeter_mock --quiet --eval "db.dropDatabase()"
 	docker compose restart jaeger
+
+# Creates/replaces the openmeter_mock.calls Mongo view, joining each raw_responses document
+# with its closest-matching OpenMeter event (see scripts/create-calls-view.js for the join
+# logic) — one place to eyeball both the provider-shaped response and the billed usage event
+# for a call. Re-run any time after `litellm-clean` drops the database.
+mongo-view:
+	docker compose exec -T mongo mongosh openmeter_mock --quiet < scripts/create-calls-view.js

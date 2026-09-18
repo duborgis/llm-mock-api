@@ -44,6 +44,7 @@ type rawResponse struct {
 	CallID     string    `json:"call_id"`
 	Model      string    `json:"model"`
 	Route      string    `json:"route"`
+	CacheHit   bool      `json:"cache_hit"`
 	ReceivedAt time.Time `json:"received_at"`
 }
 
@@ -99,6 +100,16 @@ func (s *suiteState) requestChatCompletion(model, prompt string) error {
 		"user":     "bdd-tests@example.com",
 	})
 	return s.lastErr
+}
+
+// requestChatCompletionTwice sends the exact same chat completion request twice in a row, so
+// the second call hits LiteLLM's in-memory response cache (litellm/config.yaml
+// litellm_settings.cache) instead of reaching the mock again.
+func (s *suiteState) requestChatCompletionTwice(model, prompt string) error {
+	if err := s.requestChatCompletion(model, prompt); err != nil {
+		return err
+	}
+	return s.requestChatCompletion(model, prompt)
 }
 
 func (s *suiteState) requestResponse(model, prompt string) error {
@@ -220,36 +231,53 @@ func (s *suiteState) eventForModelWithin(model string, seconds int) error {
 // custom LiteLLM callback, litellm/custom_callback.py) until an entry for the given model,
 // received after this scenario started, shows up (or the deadline hits).
 func (s *suiteState) rawResponseForModelWithin(model string, seconds int) error {
+	_, err := s.pollRawResponses(seconds, func(r rawResponse) bool {
+		return r.Model == model
+	}, fmt.Sprintf("no raw response for model %q appeared within %ds", model, seconds))
+	return err
+}
+
+// cachedRawResponseForModelWithin polls until a raw response for the given model shows up with
+// cache_hit=true — proving LiteLLM's custom_callback.raw_response_logger still fires (and still
+// reports which call was served from cache) even though the mock itself was never called again.
+func (s *suiteState) cachedRawResponseForModelWithin(model string, seconds int) error {
+	_, err := s.pollRawResponses(seconds, func(r rawResponse) bool {
+		return r.Model == model && r.CacheHit
+	}, fmt.Sprintf("no cache-hit raw response for model %q appeared within %ds", model, seconds))
+	return err
+}
+
+func (s *suiteState) pollRawResponses(seconds int, match func(rawResponse) bool, timeoutMsg string) (rawResponse, error) {
 	deadline := time.Now().Add(time.Duration(seconds) * time.Second)
-	var lastSeen []rawResponse
+	var lastSeenCount int
 
 	for time.Now().Before(deadline) {
 		resp, err := http.Get(openmeterBaseURL + "/api/v1/raw-responses?limit=20")
 		if err != nil {
-			return err
+			return rawResponse{}, err
 		}
 		var body struct {
 			Responses []rawResponse `json:"raw_responses"`
 		}
 		if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
 			resp.Body.Close()
-			return err
+			return rawResponse{}, err
 		}
 		resp.Body.Close()
-		lastSeen = body.Responses
+		lastSeenCount = len(body.Responses)
 
 		for _, r := range body.Responses {
 			if r.ReceivedAt.Before(s.scenarioStart) {
 				continue
 			}
-			if r.Model == model {
-				return nil
+			if match(r) {
+				return r, nil
 			}
 		}
 		time.Sleep(500 * time.Millisecond)
 	}
 
-	return fmt.Errorf("no raw response for model %q appeared within %ds (last seen: %d responses)", model, seconds, len(lastSeen))
+	return rawResponse{}, fmt.Errorf("%s (last seen: %d responses)", timeoutMsg, lastSeenCount)
 }
 
 // printEvents fetches the current events straight from the OpenMeter mock (backed by Mongo)
@@ -281,6 +309,7 @@ func InitializeScenario(sc *godog.ScenarioContext) {
 
 	sc.Step(`^the LiteLLM proxy and the OpenMeter mock are reachable$`, s.reachable)
 	sc.Step(`^I request a chat completion from LiteLLM for model "([^"]*)" with prompt "([^"]*)"$`, s.requestChatCompletion)
+	sc.Step(`^I request the same chat completion from LiteLLM for model "([^"]*)" with prompt "([^"]*)" twice$`, s.requestChatCompletionTwice)
 	sc.Step(`^I request a response from LiteLLM for model "([^"]*)" with prompt "([^"]*)"$`, s.requestResponse)
 	sc.Step(`^I request an image generation from LiteLLM for model "([^"]*)" with prompt "([^"]*)"$`, s.requestImageGeneration)
 	sc.Step(`^I request an audio transcription from LiteLLM for model "([^"]*)"$`, s.requestTranscription)
@@ -288,6 +317,7 @@ func InitializeScenario(sc *godog.ScenarioContext) {
 	sc.Step(`^I request a video generation from LiteLLM for model "([^"]*)" with prompt "([^"]*)"$`, s.requestVideoGeneration)
 	sc.Step(`^an OpenMeter event for model "([^"]*)" should appear within (\d+) seconds$`, s.eventForModelWithin)
 	sc.Step(`^a raw response for model "([^"]*)" should appear within (\d+) seconds$`, s.rawResponseForModelWithin)
+	sc.Step(`^a cache-hit raw response for model "([^"]*)" should appear within (\d+) seconds$`, s.cachedRawResponseForModelWithin)
 	sc.Step(`^I print the OpenMeter events stored in MongoDB$`, s.printEvents)
 }
 

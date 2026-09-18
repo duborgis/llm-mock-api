@@ -7,6 +7,7 @@ useful for a quick look in Jaeger, but not queryable/storable on its own. Regist
 litellm/config.yaml as litellm_settings.callbacks: ["custom_callback.raw_response_logger"].
 """
 
+import ast
 import json
 
 import httpx
@@ -22,6 +23,14 @@ def _to_jsonable(value):
         try:
             return json.loads(value)
         except (TypeError, ValueError):
+            pass
+        # On a cache hit, LiteLLM's own cache stores original_response as str(dict) — Python
+        # repr syntax (single quotes, None/True/False), not valid JSON. ast.literal_eval parses
+        # that safely (no arbitrary code execution) so the cached call still lands as a real
+        # object instead of an opaque string.
+        try:
+            return ast.literal_eval(value)
+        except (TypeError, ValueError, SyntaxError):
             return value
     if hasattr(value, "model_dump"):
         return value.model_dump(mode="json")
@@ -39,6 +48,7 @@ class RawResponseLogger(CustomLogger):
                 "call_id": kwargs.get("litellm_call_id", ""),
                 "model": kwargs.get("model", ""),
                 "route": metadata.get("user_api_key_request_route", ""),
+                "cache_hit": bool(kwargs.get("cache_hit", False)),
                 "raw_response": _to_jsonable(kwargs.get("original_response")),
             }
             async with httpx.AsyncClient(timeout=5) as client:

@@ -11,6 +11,7 @@ type RawResponse struct {
 	CallID     string    `json:"call_id" bson:"_id"`
 	Model      string    `json:"model" bson:"model"`
 	Route      string    `json:"route" bson:"route"`
+	CacheHit   bool      `json:"cache_hit" bson:"cache_hit"`
 	Response   any       `json:"raw_response" bson:"raw_response"`
 	ReceivedAt time.Time `json:"received_at" bson:"received_at"`
 }

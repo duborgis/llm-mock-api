@@ -75,6 +75,14 @@ model_list:
 
 litellm_settings:
   drop_params: true
+  # In-memory response cache: an identical request (same model/messages/params) within a
+  # process lifetime is served from cache instead of calling the mock again. Lets the BDD
+  # suite exercise the "cache hit" path — LiteLLM still fires success callbacks on a hit, so
+  # an OpenMeter event still lands, just with cost=0 and no new raw_response (the mock is
+  # never actually called again).
+  cache: true
+  cache_params:
+    type: local
   # Requires a `user` in the request body (or from the calling key's metadata) — LiteLLM's
   # OpenMeterLogger raises otherwise, since the event needs a subject.
   # "otel" exports one span per call via OTLP/gRPC to Jaeger (endpoint/exporter configured

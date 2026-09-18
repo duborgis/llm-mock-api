@@ -51,6 +51,19 @@ Feature: OpenMeter usage events via LiteLLM
     Then a raw response for model "tts-1" should appear within 10 seconds
     And I print the OpenMeter events stored in MongoDB
 
+  Scenario: A cached chat completion still emits an OpenMeter event and a raw response
+    # litellm_settings.cache (litellm/config.yaml) caches identical requests in-memory. LiteLLM
+    # still runs its success callbacks on a cache hit — it just serves the response without
+    # calling the mock again — so both OpenMeter and our raw-response logger still see it.
+    # OpenMeter's event id is the LLM response id, and the cached response reuses that same id,
+    # so the second call's event overwrites the first's document rather than adding a new one;
+    # the raw response is keyed by LiteLLM's own call id instead, so both calls show up there,
+    # and the second one is distinguishable by cache_hit=true.
+    When I request the same chat completion from LiteLLM for model "openai/gpt-4o" with prompt "what is the capital of france" twice
+    Then an OpenMeter event for model "gpt-4o" should appear within 10 seconds
+    And a cache-hit raw response for model "gpt-4o" should appear within 10 seconds
+    And I print the OpenMeter events stored in MongoDB
+
   Scenario: Video generation emits an OpenMeter event
     # Sora only exists in openai-python (openai-go has no video support at all yet), and
     # video generation is asynchronous in the real API (create -> poll -> download). This

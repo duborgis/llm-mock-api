@@ -268,10 +268,30 @@ litellm ──POST /api/v1/raw-responses──▶ openmeter-mock:9010 ──▶ 
 - This is intentionally **independent** of the `"openmeter"` callback: it has no assumption about
   token usage, so it keeps working even for routes (like `/v1/audio/speech`, above) where
   OpenMeter's own integration silently fails.
+- Each entry also carries `cache_hit` (from `kwargs["cache_hit"]`), so a request served from
+  LiteLLM's in-memory response cache (`litellm_settings.cache`/`cache_params` in
+  `litellm/config.yaml`) is still visible here even though the mock was never actually called
+  again — see the BDD scenario "A cached chat completion still emits an OpenMeter event and a
+  raw response" in `test/bdd/features/openmeter_events.feature`.
 
 ```bash
 curl localhost:9010/api/v1/raw-responses?limit=5
 ```
+
+### Viewing events and raw responses together
+
+`raw_responses` and `events` don't share a key (`raw_responses._id` is LiteLLM's internal call
+id; `events._id` is the LLM response id, only falling back to the call id when the response has
+none), so there's no direct join. `make mongo-view` creates a best-effort Mongo **view**,
+`openmeter_mock.calls`, that matches each raw response to the closest OpenMeter event for the
+same model within a 5-second window (see `scripts/create-calls-view.js`):
+
+```bash
+make mongo-view
+docker compose exec mongo mongosh openmeter_mock --eval "db.calls.find().sort({received_at:-1}).limit(5).pretty()"
+```
+
+Re-run `make mongo-view` after `make litellm-clean` — dropping the database drops the view too.
 
 ## Observability: OpenTelemetry traces via Jaeger
 
