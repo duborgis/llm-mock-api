@@ -21,6 +21,7 @@ type Handler struct {
 // NewRouter registers OpenAI-compatible routes onto mux.
 func NewRouter(mux *http.ServeMux, h *Handler) {
 	mux.HandleFunc("POST /v1/chat/completions", h.chatCompletions)
+	mux.HandleFunc("POST /v1/responses", h.responses)
 	mux.HandleFunc("GET /v1/models", h.listModels)
 	mux.HandleFunc("GET /v1/models/{id}", h.getModel)
 	mux.HandleFunc("POST /v1/embeddings", h.createEmbeddings)
