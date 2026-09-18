@@ -75,6 +75,9 @@ model_list:
 
 litellm_settings:
   drop_params: true
+  # Requires a `user` in the request body (or from the calling key's metadata) — LiteLLM's
+  # OpenMeterLogger raises otherwise, since the event needs a subject.
+  callbacks: ["openmeter"]
 
 general_settings:
   master_key: sk-litellm-local-test

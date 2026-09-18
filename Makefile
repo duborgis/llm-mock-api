@@ -10,6 +10,7 @@ build:
 # proxy.golang.org network access from inside the Docker build.
 build-linux:
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o bin/llm-mock-api-linux-amd64 ./cmd/server
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o bin/openmeter-mock-linux-amd64 ./cmd/openmeter-mock
 
 test:
 	go test ./...
