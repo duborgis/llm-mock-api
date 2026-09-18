@@ -7,13 +7,18 @@ scenarios:
     response_text: "This is a canned mock response for gpt-4o-mini."
 
   # A Bedrock Claude model with simulated streaming speed (10 tokens/sec).
-  - model: "anthropic.claude-3-5-sonnet-20240620-v1:0"
+  - model: "anthropic.claude-sonnet-4-5-20250929-v1:0"
     operation: chat
     response_text: "Hello from the Bedrock Claude mock, streamed slowly."
     tokens_per_second: 10
 
+  # High-fidelity coverage: OpenAI's own gpt-oss open-weight model, hosted on Bedrock.
+  - model: "openai.gpt-oss-120b-1:0"
+    operation: chat
+    response_text: "Hello from OpenAI's gpt-oss model running on Bedrock."
+
   # A high-latency scenario, useful for load/timeout testing.
-  - model: gemini-1.5-pro
+  - model: gemini-2.5-pro
     operation: chat
     response_text: "Hello from Vertex, after a delay."
     latency_ms: 3000

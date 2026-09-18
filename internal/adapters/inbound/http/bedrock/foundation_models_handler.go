@@ -35,7 +35,9 @@ func (h *Handler) listFoundationModels(w http.ResponseWriter, r *http.Request) {
 	}
 	out := listFoundationModelsResponse{}
 	for _, m := range models {
-		out.ModelSummaries = append(out.ModelSummaries, toFoundationModel(m))
+		if m.HasProvider("bedrock") {
+			out.ModelSummaries = append(out.ModelSummaries, toFoundationModel(m))
+		}
 	}
 	w.Header().Set("Content-Type", "application/json")
 	_ = writeJSON(w, out)

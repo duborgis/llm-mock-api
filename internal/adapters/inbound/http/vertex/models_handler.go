@@ -32,7 +32,7 @@ func (h *Handler) listModels(w http.ResponseWriter, r *http.Request) {
 	}
 	out := listModelsResponse{}
 	for _, m := range models {
-		if m.Family == "gemini" {
+		if m.HasProvider("vertex") {
 			out.Models = append(out.Models, toVertexModel(m))
 		}
 	}

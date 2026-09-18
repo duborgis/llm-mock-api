@@ -11,8 +11,8 @@ type Config struct {
 
 func Load() Config {
 	return Config{
-		HTTPPort:     getenv("MOCK_HTTP_PORT", "8080"),
-		AdminPort:    getenv("MOCK_ADMIN_PORT", "8081"),
+		HTTPPort:     getenv("MOCK_HTTP_PORT", "9000"),
+		AdminPort:    getenv("MOCK_ADMIN_PORT", "9001"),
 		ScenarioFile: getenv("MOCK_SCENARIO_FILE", ""),
 	}
 }

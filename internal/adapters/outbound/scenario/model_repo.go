@@ -15,14 +15,50 @@ type ModelRepo struct {
 
 func NewModelRepo() *ModelRepo {
 	return &ModelRepo{models: []domain.ModelInfo{
-		{ID: "gpt-4o", Owner: "openai", Created: 1715367049, Family: "gpt"},
-		{ID: "gpt-4o-mini", Owner: "openai", Created: 1721172741, Family: "gpt"},
-		{ID: "text-embedding-3-small", Owner: "openai", Created: 1705948997, Family: "embedding"},
-		{ID: "anthropic.claude-3-5-sonnet-20240620-v1:0", Owner: "anthropic", Created: 1718841600, Family: "claude"},
-		{ID: "amazon.titan-embed-text-v1", Owner: "amazon", Created: 1699920000, Family: "titan"},
-		{ID: "meta.llama3-70b-instruct-v1:0", Owner: "meta", Created: 1713398400, Family: "llama"},
-		{ID: "gemini-1.5-pro", Owner: "google", Created: 1715644800, Family: "gemini"},
-		{ID: "gemini-1.5-flash", Owner: "google", Created: 1715644800, Family: "gemini"},
+		// --- OpenAI native API (also listed as-is; Bedrock exposes OpenAI's *open-weight*
+		// gpt-oss models separately below, since that's the only OpenAI family AWS actually hosts) ---
+		{ID: "gpt-5", Owner: "openai", Created: 1755000000, Family: "gpt", Providers: []string{"openai"}},
+		{ID: "gpt-5-mini", Owner: "openai", Created: 1755000000, Family: "gpt", Providers: []string{"openai"}},
+		{ID: "gpt-5-nano", Owner: "openai", Created: 1755000000, Family: "gpt", Providers: []string{"openai"}},
+		{ID: "gpt-4.1", Owner: "openai", Created: 1744000000, Family: "gpt", Providers: []string{"openai"}},
+		{ID: "gpt-4.1-mini", Owner: "openai", Created: 1744000000, Family: "gpt", Providers: []string{"openai"}},
+		{ID: "gpt-4o", Owner: "openai", Created: 1715367049, Family: "gpt", Providers: []string{"openai"}},
+		{ID: "gpt-4o-mini", Owner: "openai", Created: 1721172741, Family: "gpt", Providers: []string{"openai"}},
+		{ID: "o3", Owner: "openai", Created: 1744000000, Family: "gpt", Providers: []string{"openai"}},
+		{ID: "o4-mini", Owner: "openai", Created: 1744000000, Family: "gpt", Providers: []string{"openai"}},
+		{ID: "text-embedding-3-small", Owner: "openai", Created: 1705948997, Family: "embedding", Providers: []string{"openai"}},
+		{ID: "text-embedding-3-large", Owner: "openai", Created: 1705948997, Family: "embedding", Providers: []string{"openai"}},
+
+		// --- OpenAI open-weight models, hosted on Bedrock (AWS-side, not the OpenAI API surface) ---
+		{ID: "openai.gpt-oss-120b-1:0", Owner: "openai", Created: 1754000000, Family: "gpt-oss", Providers: []string{"bedrock"}},
+		{ID: "openai.gpt-oss-20b-1:0", Owner: "openai", Created: 1754000000, Family: "gpt-oss", Providers: []string{"bedrock"}},
+
+		// --- Anthropic Claude, on Bedrock ---
+		{ID: "anthropic.claude-opus-4-5-20251101-v1:0", Owner: "anthropic", Created: 1762000000, Family: "claude", Providers: []string{"bedrock"}},
+		{ID: "anthropic.claude-sonnet-4-5-20250929-v1:0", Owner: "anthropic", Created: 1759000000, Family: "claude", Providers: []string{"bedrock"}},
+		{ID: "anthropic.claude-haiku-4-5-20251001-v1:0", Owner: "anthropic", Created: 1759349000, Family: "claude", Providers: []string{"bedrock"}},
+		{ID: "anthropic.claude-3-5-sonnet-20241022-v2:0", Owner: "anthropic", Created: 1729555200, Family: "claude", Providers: []string{"bedrock"}},
+
+		// --- Amazon Nova, on Bedrock ---
+		{ID: "amazon.nova-pro-v1:0", Owner: "amazon", Created: 1733011200, Family: "nova", Providers: []string{"bedrock"}},
+		{ID: "amazon.nova-lite-v1:0", Owner: "amazon", Created: 1733011200, Family: "nova", Providers: []string{"bedrock"}},
+		{ID: "amazon.nova-micro-v1:0", Owner: "amazon", Created: 1733011200, Family: "nova", Providers: []string{"bedrock"}},
+		{ID: "amazon.titan-embed-text-v2:0", Owner: "amazon", Created: 1707350400, Family: "embedding", Providers: []string{"bedrock"}},
+
+		// --- Meta Llama, on Bedrock ---
+		{ID: "meta.llama4-maverick-17b-instruct-v1:0", Owner: "meta", Created: 1743984000, Family: "llama", Providers: []string{"bedrock"}},
+		{ID: "meta.llama4-scout-17b-instruct-v1:0", Owner: "meta", Created: 1743984000, Family: "llama", Providers: []string{"bedrock"}},
+		{ID: "meta.llama3-3-70b-instruct-v1:0", Owner: "meta", Created: 1733788800, Family: "llama", Providers: []string{"bedrock"}},
+
+		// --- Mistral, on Bedrock ---
+		{ID: "mistral.mistral-large-2407-v1:0", Owner: "mistral", Created: 1720915200, Family: "mistral", Providers: []string{"bedrock"}},
+
+		// --- Google Gemini, on Vertex AI ---
+		{ID: "gemini-2.5-pro", Owner: "google", Created: 1750000000, Family: "gemini", Providers: []string{"vertex"}},
+		{ID: "gemini-2.5-flash", Owner: "google", Created: 1750000000, Family: "gemini", Providers: []string{"vertex"}},
+		{ID: "gemini-2.5-flash-lite", Owner: "google", Created: 1750000000, Family: "gemini", Providers: []string{"vertex"}},
+		{ID: "gemini-2.0-flash", Owner: "google", Created: 1738800000, Family: "gemini", Providers: []string{"vertex"}},
+		{ID: "text-embedding-005", Owner: "google", Created: 1715644800, Family: "embedding", Providers: []string{"vertex"}},
 	}}
 }
 

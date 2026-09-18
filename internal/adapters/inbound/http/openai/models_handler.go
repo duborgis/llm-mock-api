@@ -25,9 +25,11 @@ func (h *Handler) listModels(w http.ResponseWriter, r *http.Request) {
 		writeError(w, h.Logger, err)
 		return
 	}
-	data := make([]oai.Model, len(models))
-	for i, m := range models {
-		data[i] = toSDKModel(m)
+	var data []oai.Model
+	for _, m := range models {
+		if m.HasProvider("openai") {
+			data = append(data, toSDKModel(m))
+		}
 	}
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(modelListPage{Object: "list", Data: data})
