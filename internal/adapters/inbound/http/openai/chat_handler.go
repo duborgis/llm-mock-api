@@ -35,9 +35,15 @@ func (h *Handler) decodeChatRequest(r *http.Request) (oai.ChatCompletionNewParam
 
 	var params oai.ChatCompletionNewParams
 	if err := json.Unmarshal(raw, &params); err != nil {
-		return params, domain.ChatRequest{}, domain.ErrInvalidRequest
+		if h.Logger != nil {
+			h.Logger.Error("openai: failed to decode chat completion request body", "err", err, "body", string(raw))
+		}
+		return params, domain.ChatRequest{}, fmt.Errorf("%w: %s", domain.ErrInvalidRequest, err)
 	}
 	if params.Model == "" || len(params.Messages) == 0 {
+		if h.Logger != nil {
+			h.Logger.Error("openai: chat completion request missing model or messages", "body", string(raw))
+		}
 		return params, domain.ChatRequest{}, domain.ErrInvalidRequest
 	}
 
@@ -68,7 +74,7 @@ func (h *Handler) decodeChatRequest(r *http.Request) (oai.ChatCompletionNewParam
 func (h *Handler) chatCompletions(w http.ResponseWriter, r *http.Request) {
 	_, req, err := h.decodeChatRequest(r)
 	if err != nil {
-		writeError(w, err)
+		writeError(w, h.Logger, err)
 		return
 	}
 
@@ -79,7 +85,7 @@ func (h *Handler) chatCompletions(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := h.Chat.Complete(r.Context(), req)
 	if err != nil {
-		writeError(w, err)
+		writeError(w, h.Logger, err)
 		return
 	}
 
@@ -119,13 +125,13 @@ func toSDKChatCompletion(resp domain.ChatResponse) oai.ChatCompletion {
 func (h *Handler) streamChatCompletions(w http.ResponseWriter, r *http.Request, req domain.ChatRequest) {
 	flusher, ok := w.(http.Flusher)
 	if !ok {
-		writeError(w, fmt.Errorf("streaming unsupported"))
+		writeError(w, h.Logger, fmt.Errorf("streaming unsupported"))
 		return
 	}
 
 	ch, err := h.Chat.Stream(r.Context(), req)
 	if err != nil {
-		writeError(w, err)
+		writeError(w, h.Logger, err)
 		return
 	}
 

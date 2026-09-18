@@ -2,6 +2,8 @@ package openai
 
 import (
 	"encoding/json"
+	"errors"
+	"log/slog"
 	"net/http"
 
 	"github.com/duborgis/llm-mock-api/internal/core/domain"
@@ -17,28 +19,31 @@ type openAIErrorBody struct {
 	} `json:"error"`
 }
 
-func writeError(w http.ResponseWriter, err error) {
+func writeError(w http.ResponseWriter, logger *slog.Logger, err error) {
 	status := http.StatusInternalServerError
 	body := openAIErrorBody{}
 	body.Error.Message = err.Error()
 	body.Error.Type = "internal_error"
 
-	switch e := err.(type) {
-	case *domain.InjectedError:
-		status = e.Injection.StatusCode
+	var injected *domain.InjectedError
+	switch {
+	case errors.As(err, &injected):
+		status = injected.Injection.StatusCode
 		if status == 0 {
 			status = http.StatusInternalServerError
 		}
-		body.Error.Type = e.Injection.Type
-		body.Error.Message = e.Injection.Message
-	default:
-		if err == domain.ErrInvalidRequest {
-			status = http.StatusBadRequest
-			body.Error.Type = "invalid_request_error"
-		} else if err == domain.ErrModelNotFound {
-			status = http.StatusNotFound
-			body.Error.Type = "invalid_request_error"
-		}
+		body.Error.Type = injected.Injection.Type
+		body.Error.Message = injected.Injection.Message
+	case errors.Is(err, domain.ErrInvalidRequest):
+		status = http.StatusBadRequest
+		body.Error.Type = "invalid_request_error"
+	case errors.Is(err, domain.ErrModelNotFound):
+		status = http.StatusNotFound
+		body.Error.Type = "invalid_request_error"
+	}
+
+	if logger != nil {
+		logger.Error("openai: request failed", "status", status, "type", body.Error.Type, "message", body.Error.Message)
 	}
 
 	w.Header().Set("Content-Type", "application/json")

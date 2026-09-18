@@ -22,7 +22,7 @@ type modelListPage struct {
 func (h *Handler) listModels(w http.ResponseWriter, r *http.Request) {
 	models, err := h.Models.List(r.Context())
 	if err != nil {
-		writeError(w, err)
+		writeError(w, h.Logger, err)
 		return
 	}
 	data := make([]oai.Model, len(models))
@@ -37,7 +37,7 @@ func (h *Handler) getModel(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	m, err := h.Models.Get(r.Context(), id)
 	if err != nil {
-		writeError(w, err)
+		writeError(w, h.Logger, err)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")

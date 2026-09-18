@@ -12,7 +12,7 @@ import (
 func (h *Handler) createEmbeddings(w http.ResponseWriter, r *http.Request) {
 	var params oai.EmbeddingNewParams
 	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
-		writeError(w, domain.ErrInvalidRequest)
+		writeError(w, h.Logger, domain.ErrInvalidRequest)
 		return
 	}
 
@@ -23,13 +23,13 @@ func (h *Handler) createEmbeddings(w http.ResponseWriter, r *http.Request) {
 		inputs = params.Input.OfArrayOfStrings
 	}
 	if params.Model == "" || len(inputs) == 0 {
-		writeError(w, domain.ErrInvalidRequest)
+		writeError(w, h.Logger, domain.ErrInvalidRequest)
 		return
 	}
 
 	resp, err := h.Embed.Embed(r.Context(), domain.EmbeddingRequest{Model: string(params.Model), Input: inputs})
 	if err != nil {
-		writeError(w, err)
+		writeError(w, h.Logger, err)
 		return
 	}
 

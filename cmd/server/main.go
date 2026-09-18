@@ -56,13 +56,15 @@ func main() {
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
-		if err := httpserver.Run(ctx, ":"+cfg.HTTPPort, mux, logger, "mock-api"); err != nil {
+		handler := httpserver.WithAccessLog(logger, "mock-api", mux)
+		if err := httpserver.Run(ctx, ":"+cfg.HTTPPort, handler, logger, "mock-api"); err != nil {
 			logger.Error("mock-api server error", "err", err)
 		}
 	}()
 	go func() {
 		defer wg.Done()
-		if err := httpserver.Run(ctx, ":"+cfg.AdminPort, adminMux, logger, "admin-api"); err != nil {
+		handler := httpserver.WithAccessLog(logger, "admin-api", adminMux)
+		if err := httpserver.Run(ctx, ":"+cfg.AdminPort, handler, logger, "admin-api"); err != nil {
 			logger.Error("admin-api server error", "err", err)
 		}
 	}()
